@@ -21,7 +21,7 @@ export const io = new Server(httpServer, {
 });
 
 // add this line
-app.options("*", cors());
+app.options("(.*)", cors());
 
 app.use(
   cors({
