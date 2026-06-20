@@ -3,11 +3,9 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import * as dotenv from "dotenv";
 import authRoutes from "./routes/auth";
 import tabRoutes from "./routes/tabs";
 import expenseRoutes from "./routes/expenses";
-dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
@@ -15,7 +13,7 @@ const PORT = process.env.PORT || 3001;
 
 export const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: true,
     credentials: true,
   },
 });
@@ -28,20 +26,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
     preflightContinue: false,
     optionsSuccessStatus: 204,
-  }),
-);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowed = [process.env.CLIENT_URL, "http://localhost:5173"];
-      if (!origin || allowed.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
   }),
 );
 
