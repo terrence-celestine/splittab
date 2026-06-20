@@ -20,6 +20,9 @@ export const io = new Server(httpServer, {
   },
 });
 
+// add this line
+app.options("*", cors());
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -33,9 +36,6 @@ app.use(
     credentials: true,
   }),
 );
-
-// add this line
-app.options("*", cors());
 
 app.use(express.json());
 app.use(cookieParser());
