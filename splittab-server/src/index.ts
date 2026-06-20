@@ -22,10 +22,18 @@ export const io = new Server(httpServer, {
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: (origin, callback) => {
+      const allowed = [process.env.CLIENT_URL, "http://localhost:5173"];
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   }),
 );
+
 app.use(express.json());
 app.use(cookieParser());
 
