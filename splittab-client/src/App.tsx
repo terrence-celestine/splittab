@@ -12,11 +12,30 @@ export default function App() {
       <Route path="/" element={<Navigate to="/login" />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <ProtectedRoute>
-        <Route path="/tabs/:id/settle" element={<SettlePage />} />
-        <Route path="/join" element={<JoinPage />} />
-        <Route path="/tabs/:id" element={<TabPage />} />
-      </ProtectedRoute>
+      <Route
+        path="/tabs/:id/settle"
+        element={
+          <ProtectedRoute>
+            <SettlePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/join"
+        element={
+          <ProtectedRoute>
+            <JoinPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tabs/:id"
+        element={
+          <ProtectedRoute>
+            <TabPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
