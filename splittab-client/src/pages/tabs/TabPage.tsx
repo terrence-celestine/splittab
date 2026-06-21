@@ -12,6 +12,7 @@ import EmptyState from "../../components/EmptyState";
 import { useNavigate } from "react-router-dom";
 
 export default function TabPage() {
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -104,6 +105,26 @@ export default function TabPage() {
               {tab?.roomCode}
             </p>
             <p className="text-emerald-100 text-xs">room code</p>
+          </div>
+          <div
+            className="bg-white/20 rounded-xl px-3 py-2 text-center cursor-pointer active:bg-white/30 transition-colors"
+            onClick={() => {
+              const text = `join my tab on splittab! code: ${tab?.roomCode} — split-tab.theteecee.dev/join`;
+              if (navigator.share) {
+                navigator.share({ title: "SplitTab", text });
+              } else {
+                navigator.clipboard.writeText(text);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }
+            }}
+          >
+            <p className="text-white font-mono font-semibold tracking-widest text-sm">
+              {tab?.roomCode}
+            </p>
+            <p className="text-emerald-100 text-xs">
+              {copied ? "copied!" : "tap to share"}
+            </p>
           </div>
         </div>
 
