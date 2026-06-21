@@ -51,6 +51,16 @@ export default function TabPage() {
       queryClient.invalidateQueries({ queryKey: ["tab", id] });
     });
 
+    s.on("expense-updated", () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", id] });
+      queryClient.invalidateQueries({ queryKey: ["balances", id] });
+    });
+
+    s.on("expense-deleted", () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", id] });
+      queryClient.invalidateQueries({ queryKey: ["balances", id] });
+    });
+
     return () => {
       s.emit("leave-tab", id);
       s.disconnect();

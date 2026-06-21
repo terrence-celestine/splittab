@@ -235,4 +235,90 @@ router.get("/settle", requireAuth, async (req: AuthRequest, res: Response) => {
   res.json({ settlements: result });
 });
 
+// PUT /tabs/:id/expenses/:expenseId
+router.put(
+  "/:expenseId",
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    const expenseId = req.params.expenseId as string;
+    const userId = req.userId!;
+    const { description, amount, category, splitWith } = req.body;
+
+    const [expense] = await db
+      .select()
+      .from(expenses)
+      .where(eq(expenses.id, expenseId));
+    if (!expense) {
+      res.status(404).json({ error: "Expense not found" });
+      return;
+    }
+
+    if (expense.paidBy !== userId) {
+      res.status(403).json({ error: "Only the payer can edit this expense" });
+      return;
+    }
+
+    const [updated] = await db
+      .update(expenses)
+      .set({
+        description,
+        amount: String(amount),
+        category,
+      })
+      .where(eq(expenses.id, expenseId))
+      .returning();
+
+    // delete old splits and re-insert
+    await db
+      .delete(expenseSplits)
+      .where(eq(expenseSplits.expenseId, expenseId));
+
+    const splitAmount = (parseFloat(amount) / splitWith.length).toFixed(2);
+    await db.insert(expenseSplits).values(
+      splitWith.map((uid: string) => ({
+        expenseId,
+        userId: uid,
+        amount: splitAmount,
+      })),
+    );
+
+    io.to(expense.tabId).emit("expense-updated", { expense: updated });
+
+    res.json({ expense: updated });
+  },
+);
+
+// DELETE /tabs/:id/expenses/:expenseId
+router.delete(
+  "/:expenseId",
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    const expenseId = req.params.expenseId as string;
+    const userId = req.userId!;
+
+    const [expense] = await db
+      .select()
+      .from(expenses)
+      .where(eq(expenses.id, expenseId));
+    if (!expense) {
+      res.status(404).json({ error: "Expense not found" });
+      return;
+    }
+
+    if (expense.paidBy !== userId) {
+      res.status(403).json({ error: "Only the payer can delete this expense" });
+      return;
+    }
+
+    await db
+      .delete(expenseSplits)
+      .where(eq(expenseSplits.expenseId, expenseId));
+    await db.delete(expenses).where(eq(expenses.id, expenseId));
+
+    io.to(expense.tabId).emit("expense-deleted", { expenseId });
+
+    res.json({ message: "Expense deleted" });
+  },
+);
+
 export default router;
