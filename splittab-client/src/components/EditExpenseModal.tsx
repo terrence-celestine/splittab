@@ -151,7 +151,7 @@ export default function EditExpenseModal({
                       {isYou ? "You" : m.name}
                     </p>
                     <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${selected ? "bg-emerald-500" : "border border-gray-200"}`}
+                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${selected ? "bg-emerald-500" : "border border-gray-200"}`}
                     >
                       {selected && (
                         <svg

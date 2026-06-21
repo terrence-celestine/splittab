@@ -9,14 +9,12 @@ import type { Expense, Balance, TabMember } from "../../types";
 import AddExpenseModal from "../../components/AddExpenseModal";
 import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
 import EmptyState from "../../components/EmptyState";
-import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/BottomNav";
 import EditExpenseModal from "../../components/EditExpenseModal";
 
 export default function TabPage() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [copied, setCopied] = useState(false);
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -208,7 +206,7 @@ export default function TabPage() {
                   key={expense.id}
                   className="flex items-center gap-3 px-5 py-4 border-b border-gray-50"
                 >
-                  <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                  <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center text-lg shrink-0">
                     {getCategoryEmoji(expense.category)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -223,7 +221,7 @@ export default function TabPage() {
                       · {expense.splits.length} ways
                     </p>
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-gray-900">
                       ${parseFloat(expense.amount).toFixed(2)}
                     </p>
