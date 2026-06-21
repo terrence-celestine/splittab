@@ -233,7 +233,7 @@ export default function TabPage() {
             balances.map((b) => (
               <div key={b.id} className="flex items-center gap-3 px-5 py-4">
                 <div
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 ${getAvatarColor(b.name)}`}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${getAvatarColor(b.name)}`}
                 >
                   {b.name[0]}
                 </div>
