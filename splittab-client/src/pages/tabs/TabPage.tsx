@@ -7,6 +7,7 @@ import { getExpenses, getBalances } from "../../api/expense";
 import { useAuth } from "../../context/AuthContext";
 import type { Expense, Balance, TabMember } from "../../types";
 import AddExpenseModal from "../../components/AddExpenseModal";
+import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
 
 export default function TabPage() {
   const { id } = useParams<{ id: string }>();
@@ -81,6 +82,8 @@ export default function TabPage() {
     ];
     return colors[name.charCodeAt(0) % colors.length];
   }
+
+  if (!tabData || !expensesData || !balancesData) return <TabPageSkeleton />;
 
   return (
     <div className="min-h-screen bg-white max-w-sm mx-auto">

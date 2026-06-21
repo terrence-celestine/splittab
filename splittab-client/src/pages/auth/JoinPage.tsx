@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { createTab, joinTab } from "../../api/tabs";
+import JoinPageSkeleton from "../../skeletons/JoinPageSkeleton";
 
 export default function JoinPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState("");
   const [tabName, setTabName] = useState("");
@@ -38,6 +39,8 @@ export default function JoinPage() {
       setLoading(false);
     }
   }
+
+  if (authLoading) return <JoinPageSkeleton />;
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
