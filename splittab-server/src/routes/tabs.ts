@@ -76,10 +76,10 @@ router.post("/join", requireAuth, async (req: AuthRequest, res: Response) => {
 
 // DELETE /tabs/:id/leave
 router.delete(
-  "/leave",
+  "/:tabId/leave",
   requireAuth,
   async (req: AuthRequest, res: Response) => {
-    const tabId = req.params.id as string;
+    const tabId = req.params.tabId as string;
     const userId = req.userId!;
 
     const members = await db
