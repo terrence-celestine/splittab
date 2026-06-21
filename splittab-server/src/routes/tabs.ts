@@ -74,6 +74,41 @@ router.post("/join", requireAuth, async (req: AuthRequest, res: Response) => {
   res.json({ tab });
 });
 
+// DELETE /tabs/:id/leave
+router.delete(
+  "/leave",
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    const tabId = req.params.id as string;
+    const userId = req.userId!;
+
+    const members = await db
+      .select()
+      .from(tabMembers)
+      .where(eq(tabMembers.tabId, tabId));
+    const isMember = members.some((m) => m.userId === userId);
+    if (!isMember) {
+      res.status(403).json({ error: "You are not a member of this tab" });
+      return;
+    }
+
+    if (members.length === 1) {
+      res
+        .status(400)
+        .json({ error: "You are the only member. Delete the tab instead." });
+      return;
+    }
+
+    await db
+      .delete(tabMembers)
+      .where(and(eq(tabMembers.tabId, tabId), eq(tabMembers.userId, userId)));
+
+    io.to(tabId).emit("member-left", { userId, tabId });
+
+    res.json({ message: "Left tab successfully" });
+  },
+);
+
 // GET /tabs/:id — fetch tab + members
 router.get("/:id", requireAuth, async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
@@ -109,40 +144,5 @@ router.get("/:id", requireAuth, async (req: AuthRequest, res: Response) => {
 
   res.json({ tab, members });
 });
-
-// DELETE /tabs/:id/leave
-router.delete(
-  "/leave",
-  requireAuth,
-  async (req: AuthRequest, res: Response) => {
-    const tabId = req.params.id as string;
-    const userId = req.userId!;
-
-    const members = await db
-      .select()
-      .from(tabMembers)
-      .where(eq(tabMembers.tabId, tabId));
-    const isMember = members.some((m) => m.userId === userId);
-    if (!isMember) {
-      res.status(403).json({ error: "You are not a member of this tab" });
-      return;
-    }
-
-    if (members.length === 1) {
-      res
-        .status(400)
-        .json({ error: "You are the only member. Delete the tab instead." });
-      return;
-    }
-
-    await db
-      .delete(tabMembers)
-      .where(and(eq(tabMembers.tabId, tabId), eq(tabMembers.userId, userId)));
-
-    io.to(tabId).emit("member-left", { userId, tabId });
-
-    res.json({ message: "Left tab successfully" });
-  },
-);
 
 export default router;
