@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import type { Expense, Balance, TabMember } from "../../types";
 import AddExpenseModal from "../../components/AddExpenseModal";
 import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
+import EmptyState from "../../components/EmptyState";
 
 export default function TabPage() {
   const { id } = useParams<{ id: string }>();
@@ -119,7 +120,6 @@ export default function TabPage() {
           </div>
         </div>
       </div>
-
       {/* members row */}
       <div className="px-5 py-3 flex items-center gap-2 border-b border-gray-100">
         {members.map((m) => (
@@ -134,7 +134,6 @@ export default function TabPage() {
           {members.length} member{members.length !== 1 ? "s" : ""}
         </p>
       </div>
-
       {/* tabs */}
       <div className="flex border-b border-gray-100">
         <button
@@ -150,75 +149,89 @@ export default function TabPage() {
           balances
         </button>
       </div>
-
       {/* expenses list */}
+      // in the expenses list section, replace the empty check:
       {activeTab === "expenses" && (
         <div className="divide-y divide-gray-50">
-          {expenses.length === 0 && (
-            <div className="text-center py-12 text-gray-300 text-sm">
-              no expenses yet
-            </div>
+          {expenses.length === 0 ? (
+            <EmptyState
+              title="no expenses yet"
+              description="add your first expense and split it with the group"
+              action={{
+                label: "add expense",
+                onClick: () => setShowAddExpenseModal(true),
+              }}
+            />
+          ) : (
+            expenses.map((expense) => (
+              <div
+                key={expense.id}
+                className="flex items-center gap-3 px-5 py-4"
+              >
+                <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center text-lg shrink-0">
+                  {getCategoryEmoji(expense.category)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {expense.description}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    paid by{" "}
+                    {expense.paidByUser?.name === user?.name
+                      ? "you"
+                      : expense.paidByUser?.name}{" "}
+                    · {expense.splits.length} ways
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-semibold text-gray-900">
+                    ${parseFloat(expense.amount).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    ${parseFloat(expense.splits[0]?.amount ?? "0").toFixed(2)}{" "}
+                    each
+                  </p>
+                </div>
+              </div>
+            ))
           )}
-          {expenses.map((expense) => (
-            <div key={expense.id} className="flex items-center gap-3 px-5 py-4">
-              <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center text-lg shrink-0">
-                {getCategoryEmoji(expense.category)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {expense.description}
-                </p>
-                <p className="text-xs text-gray-400">
-                  paid by{" "}
-                  {expense.paidByUser?.name === user?.name
-                    ? "you"
-                    : expense.paidByUser?.name}{" "}
-                  · {expense.splits.length} ways
-                </p>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="text-sm font-semibold text-gray-900">
-                  ${parseFloat(expense.amount).toFixed(2)}
-                </p>
-                <p className="text-xs text-gray-400">
-                  ${parseFloat(expense.splits[0]?.amount ?? "0").toFixed(2)}{" "}
-                  each
-                </p>
-              </div>
-            </div>
-          ))}
         </div>
       )}
-
       {/* balances list */}
       {activeTab === "balances" && (
         <div className="divide-y divide-gray-50">
-          {balances.map((b) => (
-            <div key={b.id} className="flex items-center gap-3 px-5 py-4">
-              <div
-                className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium shrink-0 ${getAvatarColor(b.name)}`}
-              >
-                {b.name[0]}
+          {balances.length === 0 ? (
+            <EmptyState
+              title="no balances yet"
+              description="add some expenses to see who owes what"
+            />
+          ) : (
+            balances.map((b) => (
+              <div key={b.id} className="flex items-center gap-3 px-5 py-4">
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 ${getAvatarColor(b.name)}`}
+                >
+                  {b.name[0]}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    {b.name === user?.name ? "You" : b.name}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {b.balance >= 0 ? "is owed" : "owes"}
+                  </p>
+                </div>
+                <span
+                  className={`text-sm font-semibold ${b.balance > 0 ? "text-emerald-500" : b.balance < 0 ? "text-red-400" : "text-gray-400"}`}
+                >
+                  {b.balance >= 0 ? "+" : ""}
+                  {b.balance.toFixed(2)}
+                </span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {b.name === user?.name ? "You" : b.name}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {b.balance >= 0 ? "is owed" : "owes"}
-                </p>
-              </div>
-              <span
-                className={`text-sm font-semibold ${b.balance > 0 ? "text-emerald-500" : b.balance < 0 ? "text-red-400" : "text-gray-400"}`}
-              >
-                {b.balance >= 0 ? "+" : ""}
-                {b.balance.toFixed(2)}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       )}
-
       {/* add expense fab */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
         <button
