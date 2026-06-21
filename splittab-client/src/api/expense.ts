@@ -22,3 +22,8 @@ export async function getBalances(tabId: string) {
   const res = await api.get(`/tabs/${tabId}/expenses/balances`);
   return res.data;
 }
+
+export async function getSettlements(tabId: string) {
+  const res = await api.get(`/tabs/${tabId}/expenses/settle`);
+  return res.data;
+}

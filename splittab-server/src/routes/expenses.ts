@@ -148,4 +148,91 @@ router.get(
   },
 );
 
+// GET /tabs/:id/expenses/settle
+router.get("/settle", requireAuth, async (req: AuthRequest, res: Response) => {
+  const tabId = req.params.id as string;
+  const userId = req.userId!;
+
+  const members = await db
+    .select()
+    .from(tabMembers)
+    .where(eq(tabMembers.tabId, tabId));
+  const isMember = members.some((m) => m.userId === userId);
+  if (!isMember) {
+    res.status(403).json({ error: "You are not a member of this tab" });
+    return;
+  }
+
+  const rows = await db
+    .select()
+    .from(expenses)
+    .where(eq(expenses.tabId, tabId));
+
+  // build net balance map
+  const balances: Record<string, number> = {};
+  members.forEach((m) => (balances[m.userId] = 0));
+
+  for (const expense of rows) {
+    const splits = await db
+      .select()
+      .from(expenseSplits)
+      .where(eq(expenseSplits.expenseId, expense.id));
+    balances[expense.paidBy] += parseFloat(expense.amount);
+    for (const split of splits) {
+      balances[split.userId] -= parseFloat(split.amount);
+    }
+  }
+
+  // debt simplification algorithm
+  const settlements: { from: string; to: string; amount: number }[] = [];
+  const debtors = Object.entries(balances)
+    .filter(([, b]) => b < 0)
+    .map(([id, b]) => ({ id, amount: b }));
+  const creditors = Object.entries(balances)
+    .filter(([, b]) => b > 0)
+    .map(([id, b]) => ({ id, amount: b }));
+
+  let i = 0,
+    j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const debtor = debtors[i];
+    const creditor = creditors[j];
+    const amount = Math.min(Math.abs(debtor.amount), creditor.amount);
+
+    if (amount > 0.01) {
+      settlements.push({
+        from: debtor.id,
+        to: creditor.id,
+        amount: parseFloat(amount.toFixed(2)),
+      });
+    }
+
+    debtor.amount += amount;
+    creditor.amount -= amount;
+
+    if (Math.abs(debtor.amount) < 0.01) i++;
+    if (creditor.amount < 0.01) j++;
+  }
+
+  // attach names
+  const allUsers = await Promise.all(
+    members.map((m) =>
+      db
+        .select({ id: users.id, name: users.name })
+        .from(users)
+        .where(eq(users.id, m.userId))
+        .then((rows) => rows[0]),
+    ),
+  );
+  const userMap = Object.fromEntries(allUsers.map((u) => [u.id, u.name]));
+
+  const result = settlements.map((s) => ({
+    from: { id: s.from, name: userMap[s.from] },
+    to: { id: s.to, name: userMap[s.to] },
+    amount: s.amount,
+  }));
+
+  res.json({ settlements: result });
+});
+
 export default router;

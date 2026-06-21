@@ -9,8 +9,10 @@ import type { Expense, Balance, TabMember } from "../../types";
 import AddExpenseModal from "../../components/AddExpenseModal";
 import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
 import EmptyState from "../../components/EmptyState";
+import { useNavigate } from "react-router-dom";
 
 export default function TabPage() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -133,6 +135,14 @@ export default function TabPage() {
         <p className="text-xs text-gray-400 ml-1">
           {members.length} member{members.length !== 1 ? "s" : ""}
         </p>
+      </div>
+      <div className="px-5 py-3 border-b border-gray-100">
+        <button
+          onClick={() => navigate(`/tabs/${id}/settle`)}
+          className="w-full bg-gray-50 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-100 transition-colors"
+        >
+          settle up
+        </button>
       </div>
       {/* tabs */}
       <div className="flex border-b border-gray-100">
