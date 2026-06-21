@@ -181,7 +181,6 @@ export default function TabPage() {
         </button>
       </div>
       {/* expenses list */}
-      // in the expenses list section, replace the empty check:
       {activeTab === "expenses" && (
         <div className="divide-y divide-gray-50">
           {expenses.length === 0 ? (
