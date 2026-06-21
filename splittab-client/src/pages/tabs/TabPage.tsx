@@ -152,14 +152,6 @@ export default function TabPage() {
           {members.length} member{members.length !== 1 ? "s" : ""}
         </p>
       </div>
-      <div className="px-5 py-3 border-b border-gray-100">
-        <button
-          onClick={() => navigate(`/tabs/${id}/settle`)}
-          className="w-full bg-gray-50 text-gray-700 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-100 transition-colors"
-        >
-          settle up
-        </button>
-      </div>
       {/* tabs */}
       <div className="flex border-b border-gray-100">
         <button
