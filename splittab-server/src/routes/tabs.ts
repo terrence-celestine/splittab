@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { db } from "../db";
-import { tabs, tabMembers, users } from "../db/schema";
+import { tabs, tabMembers, users, expenses, expenseSplits } from "../db/schema";
 import { and, eq } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { generateRoomCode } from "../lib/roomCode";
@@ -93,9 +93,20 @@ router.delete(
     }
 
     if (members.length === 1) {
-      res
-        .status(400)
-        .json({ error: "You are the only member. Delete the tab instead." });
+      // sole member — delete the whole tab
+      const tabExpenses = await db
+        .select()
+        .from(expenses)
+        .where(eq(expenses.tabId, tabId));
+      for (const expense of tabExpenses) {
+        await db
+          .delete(expenseSplits)
+          .where(eq(expenseSplits.expenseId, expense.id));
+      }
+      await db.delete(expenses).where(eq(expenses.tabId, tabId));
+      await db.delete(tabMembers).where(eq(tabMembers.tabId, tabId));
+      await db.delete(tabs).where(eq(tabs.id, tabId));
+      res.json({ message: "Tab deleted" });
       return;
     }
 
