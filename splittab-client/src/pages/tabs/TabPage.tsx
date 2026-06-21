@@ -100,12 +100,6 @@ export default function TabPage() {
               {tab?.name ?? "..."}
             </h1>
           </div>
-          <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-            <p className="text-white font-mono font-semibold tracking-widest text-sm">
-              {tab?.roomCode}
-            </p>
-            <p className="text-emerald-100 text-xs">room code</p>
-          </div>
           <div
             className="bg-white/20 rounded-xl px-3 py-2 text-center cursor-pointer active:bg-white/30 transition-colors"
             onClick={() => {
