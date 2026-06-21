@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { createTab, joinTab } from "../../api/tabs";
 import JoinPageSkeleton from "../../skeletons/JoinPageSkeleton";
+import toast from "react-hot-toast";
 
 export default function JoinPage() {
   const { user, logout, loading: authLoading } = useAuth();
@@ -20,6 +21,7 @@ export default function JoinPage() {
       const data = await joinTab(roomCode.trim().toUpperCase());
       navigate(`/tabs/${data.tab.id}`);
     } catch {
+      toast.error("Tab not found. Check the room code and try again.");
       setError("Tab not found. Check the room code and try again.");
     } finally {
       setLoading(false);
@@ -33,7 +35,9 @@ export default function JoinPage() {
     try {
       const data = await createTab(tabName.trim());
       navigate(`/tabs/${data.tab.id}`);
+      toast.success("Tab created successfully!");
     } catch {
+      toast.error("Something went wrong. Try again.");
       setError("Something went wrong. Try again.");
     } finally {
       setLoading(false);

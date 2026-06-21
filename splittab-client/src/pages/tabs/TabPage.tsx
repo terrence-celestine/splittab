@@ -12,6 +12,7 @@ import EmptyState from "../../components/EmptyState";
 import BottomNav from "../../components/BottomNav";
 import EditExpenseModal from "../../components/EditExpenseModal";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function TabPage() {
   const navigate = useNavigate();
@@ -26,6 +27,10 @@ export default function TabPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", id] });
       queryClient.invalidateQueries({ queryKey: ["balances", id] });
+      toast.success("expense deleted");
+    },
+    onError: () => {
+      toast.error("failed to delete expense");
     },
   });
 
@@ -138,6 +143,7 @@ export default function TabPage() {
               } else {
                 navigator.clipboard.writeText(text);
                 setCopied(true);
+                toast.success("copied to clipboard!");
                 setTimeout(() => setCopied(false), 2000);
               }
             }}

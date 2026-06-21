@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addExpense } from "../api/expense";
 import type { TabMember } from "../types";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 interface Props {
   tabId: string;
@@ -41,6 +42,7 @@ export default function AddExpenseModal({ tabId, members, onClose }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", tabId] });
       queryClient.invalidateQueries({ queryKey: ["balances", tabId] });
+      toast.success("expense added");
       onClose();
     },
   });
