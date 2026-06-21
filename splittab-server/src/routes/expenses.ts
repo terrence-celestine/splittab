@@ -4,23 +4,38 @@ import { expenses, expenseSplits, tabMembers, users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { io } from "../index";
+import { z } from "zod";
 
 const router = Router({ mergeParams: true });
+
+const addExpenseSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  amount: z.number().positive("Amount must be positive"),
+  category: z.enum([
+    "food",
+    "transport",
+    "stay",
+    "drinks",
+    "shopping",
+    "other",
+  ]),
+  splitWith: z
+    .array(z.string().uuid())
+    .min(1, "Must split with at least one person"),
+});
 
 // POST /tabs/:id/expenses
 router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
   const tabId = req.params.id as string;
   const userId = req.userId!;
-  const { description, amount, category, splitWith } = req.body;
 
-  if (!description || !amount || !splitWith?.length) {
-    res
-      .status(400)
-      .json({ error: "description, amount, and splitWith are required" });
+  const result = addExpenseSchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message });
     return;
   }
+  const { description, amount, category, splitWith } = result.data;
 
-  // verify requester is a tab member
   const members = await db
     .select()
     .from(tabMembers)
@@ -31,7 +46,6 @@ router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
     return;
   }
 
-  // insert expense
   const [expense] = await db
     .insert(expenses)
     .values({
@@ -39,14 +53,12 @@ router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
       paidBy: userId,
       description,
       amount: String(amount),
-      category: category ?? "other",
+      category,
     })
     .returning();
 
-  // calculate equal split
-  const splitAmount = (parseFloat(amount) / splitWith.length).toFixed(2);
+  const splitAmount = (amount / splitWith.length).toFixed(2);
 
-  // insert splits
   await db.insert(expenseSplits).values(
     splitWith.map((uid: string) => ({
       expenseId: expense.id,
@@ -54,6 +66,7 @@ router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
       amount: splitAmount,
     })),
   );
+
   io.to(tabId).emit("expense-added", { expense });
   res.status(201).json({ expense });
 });

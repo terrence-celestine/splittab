@@ -5,18 +5,28 @@ import { and, eq } from "drizzle-orm";
 import { requireAuth, AuthRequest } from "../middleware/auth";
 import { generateRoomCode } from "../lib/roomCode";
 import { io } from "../index";
+import { z } from "zod";
 
 const router = Router({ mergeParams: true });
 
+const createTabSchema = z.object({
+  name: z.string().min(1, "Tab name is required").max(50, "Tab name too long"),
+});
+
+const joinTabSchema = z.object({
+  roomCode: z.string().length(4, "Room code must be 4 characters"),
+});
+
 // POST /tabs — create a tab
 router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
-  const { name } = req.body;
-  const userId = req.userId!;
+  const userId = req.userId!; // add this
 
-  if (!name) {
-    res.status(400).json({ error: "Tab name is required" });
+  const result = createTabSchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message });
     return;
   }
+  const { name } = result.data;
 
   const roomCode = await generateRoomCode();
 
@@ -40,8 +50,14 @@ router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
 
 // POST /tabs/join — join by room code
 router.post("/join", requireAuth, async (req: AuthRequest, res: Response) => {
-  const { roomCode } = req.body;
-  const userId = req.userId!;
+  const userId = req.userId!; // add this
+
+  const result = joinTabSchema.safeParse(req.body);
+  if (!result.success) {
+    res.status(400).json({ error: result.error.issues[0].message });
+    return;
+  }
+  const { roomCode } = result.data;
 
   if (!roomCode) {
     res.status(400).json({ error: "Room code is required" });
