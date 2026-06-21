@@ -55,48 +55,56 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <div className="mb-4">
-          <label className="text-xs text-gray-400 mb-1 block">full name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
-            placeholder="Terrence C."
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="text-xs text-gray-400 mb-1 block">email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
-            placeholder="you@email.com"
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="text-xs text-gray-400 mb-1 block">password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-emerald-500 text-white rounded-xl py-3 text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
         >
-          {loading ? "creating account..." : "create account"}
-        </button>
+          <div className="mb-4">
+            <label className="text-xs text-gray-400 mb-1 block">
+              full name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="Terrence C."
+            />
+          </div>
 
+          <div className="mb-4">
+            <label className="text-xs text-gray-400 mb-1 block">email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="you@email.com"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="text-xs text-gray-400 mb-1 block">password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full bg-emerald-500 text-white rounded-xl py-3 text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+            type="submit"
+          >
+            {loading ? "creating account..." : "create account"}
+          </button>
+        </form>
         <p className="text-center text-xs text-gray-400 mt-6">
           already have an account?{" "}
           <Link to="/login" className="text-emerald-500 font-medium">

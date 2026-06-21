@@ -53,37 +53,42 @@ export default function LoginPage() {
             {error}
           </div>
         )}
-
-        <div className="mb-4">
-          <label className="text-xs text-gray-400 mb-1 block">email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
-            placeholder="you@email.com"
-          />
-        </div>
-
-        <div className="mb-6">
-          <label className="text-xs text-gray-400 mb-1 block">password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-            className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-emerald-500 text-white rounded-xl py-3 text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
         >
-          {loading ? "signing in..." : "sign in"}
-        </button>
+          <div className="mb-4">
+            <label className="text-xs text-gray-400 mb-1 block">email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="you@email.com"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label className="text-xs text-gray-400 mb-1 block">password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-emerald-400"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-emerald-500 text-white rounded-xl py-3 text-sm font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+          >
+            {loading ? "signing in..." : "sign in"}
+          </button>
+        </form>
 
         <p className="text-center text-xs text-gray-400 mt-6">
           don't have an account?{" "}

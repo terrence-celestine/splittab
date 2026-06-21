@@ -10,6 +10,7 @@ import AddExpenseModal from "../../components/AddExpenseModal";
 import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
 import EmptyState from "../../components/EmptyState";
 import { useNavigate } from "react-router-dom";
+import BottomNav from "../../components/BottomNav";
 
 export default function TabPage() {
   const [copied, setCopied] = useState(false);
@@ -90,7 +91,7 @@ export default function TabPage() {
   if (!tabData || !expensesData || !balancesData) return <TabPageSkeleton />;
 
   return (
-    <div className="min-h-screen bg-white max-w-sm mx-auto">
+    <div className="min-h-screen bg-white max-w-sm mx-auto pb-24">
       {/* header */}
       <div className="bg-emerald-500 px-5 pt-12 pb-6">
         <div className="flex items-center justify-between mb-4">
@@ -257,26 +258,10 @@ export default function TabPage() {
         </div>
       )}
       {/* add expense fab */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
-        <button
-          onClick={() => setShowAddExpenseModal(true)}
-          className="bg-emerald-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-colors"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </button>
-      </div>
+      <BottomNav
+        tabId={id!}
+        onAddExpense={() => setShowAddExpenseModal(true)}
+      />
       {showAddExpenseModal && (
         <AddExpenseModal
           tabId={id!}
