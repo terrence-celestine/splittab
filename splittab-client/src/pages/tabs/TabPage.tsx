@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 import { getTab } from "../../api/tabs";
-import { getExpenses, getBalances } from "../../api/expense";
+import { getExpenses, getBalances, deleteExpense } from "../../api/expense";
 import { useAuth } from "../../context/AuthContext";
 import type { Expense, Balance, TabMember } from "../../types";
 import AddExpenseModal from "../../components/AddExpenseModal";
@@ -11,13 +11,24 @@ import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
 import EmptyState from "../../components/EmptyState";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "../../components/BottomNav";
+import EditExpenseModal from "../../components/EditExpenseModal";
 
 export default function TabPage() {
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  const { mutate: mutateDelete } = useMutation({
+    mutationFn: (expenseId: string) => deleteExpense(id!, expenseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expenses", id] });
+      queryClient.invalidateQueries({ queryKey: ["balances", id] });
+    },
+  });
+
   const [activeTab, setActiveTab] = useState<"expenses" | "balances">(
     "expenses",
   );
@@ -190,37 +201,80 @@ export default function TabPage() {
               }}
             />
           ) : (
-            expenses.map((expense) => (
-              <div
-                key={expense.id}
-                className="flex items-center gap-3 px-5 py-4"
-              >
-                <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center text-lg shrink-0">
-                  {getCategoryEmoji(expense.category)}
+            expenses.map((expense) => {
+              const isPayer = expense.paidBy === user?.id;
+              return (
+                <div
+                  key={expense.id}
+                  className="flex items-center gap-3 px-5 py-4 border-b border-gray-50"
+                >
+                  <div className="w-9 h-9 bg-gray-50 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+                    {getCategoryEmoji(expense.category)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {expense.description}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      paid by{" "}
+                      {expense.paidByUser?.name === user?.name
+                        ? "you"
+                        : expense.paidByUser?.name}{" "}
+                      · {expense.splits.length} ways
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-sm font-semibold text-gray-900">
+                      ${parseFloat(expense.amount).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      ${parseFloat(expense.splits[0]?.amount ?? "0").toFixed(2)}{" "}
+                      each
+                    </p>
+                  </div>
+                  {isPayer && (
+                    <div className="flex flex-col gap-1   shrink-0">
+                      <button
+                        onClick={() => setEditingExpense(expense)}
+                        className="w-7 h-7 bg-gray-50 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => mutateDelete(expense.id)}
+                        className="w-7 h-7 bg-red-50 rounded-lg flex items-center justify-center hover:bg-red-100 transition-colors"
+                      >
+                        <svg
+                          className="w-3.5 h-3.5 text-red-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {expense.description}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    paid by{" "}
-                    {expense.paidByUser?.name === user?.name
-                      ? "you"
-                      : expense.paidByUser?.name}{" "}
-                    · {expense.splits.length} ways
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-gray-900">
-                    ${parseFloat(expense.amount).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    ${parseFloat(expense.splits[0]?.amount ?? "0").toFixed(2)}{" "}
-                    each
-                  </p>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       )}
@@ -269,6 +323,14 @@ export default function TabPage() {
           tabId={id!}
           members={members}
           onClose={() => setShowAddExpenseModal(false)}
+        />
+      )}
+      {editingExpense && (
+        <EditExpenseModal
+          tabId={id!}
+          expense={editingExpense}
+          members={members}
+          onClose={() => setEditingExpense(null)}
         />
       )}
     </div>
