@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
-import { getTab } from "../../api/tabs";
+import { getTab, leaveTab } from "../../api/tabs";
 import { getExpenses, getBalances, deleteExpense } from "../../api/expense";
 import { useAuth } from "../../context/AuthContext";
 import type { Expense, Balance, TabMember } from "../../types";
@@ -11,8 +11,10 @@ import TabPageSkeleton from "../../skeletons/TabPageSkeleton";
 import EmptyState from "../../components/EmptyState";
 import BottomNav from "../../components/BottomNav";
 import EditExpenseModal from "../../components/EditExpenseModal";
+import { useNavigate } from "react-router-dom";
 
 export default function TabPage() {
+  const navigate = useNavigate();
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [copied, setCopied] = useState(false);
   const { id } = useParams<{ id: string }>();
@@ -24,6 +26,13 @@ export default function TabPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["expenses", id] });
       queryClient.invalidateQueries({ queryKey: ["balances", id] });
+    },
+  });
+
+  const { mutate: mutateLeave, isPending: isLeaving } = useMutation({
+    mutationFn: () => leaveTab(id!),
+    onSuccess: () => {
+      navigate("/join");
     },
   });
 
@@ -140,6 +149,25 @@ export default function TabPage() {
               {copied ? "copied!" : "tap to share"}
             </p>
           </div>
+          <button
+            onClick={() => mutateLeave()}
+            disabled={isLeaving}
+            className="bg-white/20 rounded-xl p-2 hover:bg-white/30 transition-colors"
+          >
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+          </button>
         </div>
 
         <div className="flex gap-3">

@@ -14,3 +14,8 @@ export async function getTab(id: string) {
   const res = await api.get(`/tabs/${id}`);
   return res.data;
 }
+
+export async function leaveTab(tabId: string) {
+  const res = await api.delete(`/tabs/${tabId}/leave`);
+  return res.data;
+}
