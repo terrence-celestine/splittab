@@ -150,9 +150,13 @@ export default function TabPage() {
             </p>
           </div>
           <button
-            onClick={() => mutateLeave()}
+            onClick={() => {
+              if (window.confirm("Are you sure you want to leave this tab?")) {
+                mutateLeave();
+              }
+            }}
             disabled={isLeaving}
-            className="bg-white/20 rounded-xl p-2 hover:bg-white/30 transition-colors"
+            className="bg-white/20 rounded-xl p-2 hover:bg-white/30 transition-colors disabled:opacity-50"
           >
             <svg
               className="w-5 h-5 text-white"
